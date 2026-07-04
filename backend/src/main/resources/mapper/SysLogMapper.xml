@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.relic.admin.mapper.SysLogMapper">
+
+    <resultMap id="sysLogResultMap" type="com.relic.admin.entity.SysLog">
+        <id column="id" property="id"/>
+        <result column="log_type" property="logType"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="operator_name" property="operatorName"/>
+        <result column="operation_type" property="operationType"/>
+        <result column="operation_target" property="operationTarget"/>
+        <result column="method" property="method"/>
+        <result column="request_url" property="requestUrl"/>
+        <result column="request_method" property="requestMethod"/>
+        <result column="request_params" property="requestParams"/>
+        <result column="before_data" property="beforeData"/>
+        <result column="after_data" property="afterData"/>
+        <result column="ip" property="ip"/>
+        <result column="status" property="status"/>
+        <result column="error_msg" property="errorMsg"/>
+        <result column="cost_time" property="costTime"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <sql id="logColumns">
+        id, log_type, operator_id, operator_name, operation_type, operation_target,
+        method, request_url, request_method, request_params, before_data, after_data,
+        ip, status, error_msg, cost_time, create_time
+    </sql>
+
+    <sql id="logWhereClause">
+        <where>
+            <if test="logType != null and logType != ''">
+                AND log_type = #{logType}
+            </if>
+            <if test="operationType != null and operationType != ''">
+                AND operation_type = #{operationType}
+            </if>
+            <if test="operatorName != null and operatorName != ''">
+                AND operator_name LIKE CONCAT('%', #{operatorName}, '%')
+            </if>
+            <if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+                AND create_time BETWEEN #{startDate} AND #{endDate}
+            </if>
+            <if test="startDate != null and startDate != '' and (endDate == null or endDate == '')">
+                AND create_time &gt;= #{startDate}
+            </if>
+            <if test="(startDate == null or startDate == '') and endDate != null and endDate != ''">
+                AND create_time &lt;= #{endDate}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    operation_target LIKE CONCAT('%', #{keyword}, '%')
+                    OR request_url LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectLogPage" resultMap="sysLogResultMap">
+        SELECT <include refid="logColumns"/>
+        FROM sys_log
+        <include refid="logWhereClause"/>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectLogList" resultMap="sysLogResultMap">
+        SELECT <include refid="logColumns"/>
+        FROM sys_log
+        <include refid="logWhereClause"/>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>
